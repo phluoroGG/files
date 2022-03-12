@@ -1,0 +1,25 @@
+restart;
+a := 0, 0, 0, 0, 0, 0, 0;
+equ := a[1]*diff(u(x, y), x, x) + a[2]*diff(u(x, y), x, y)
++ a[3]*diff(u(x, y), y, y) + a[4]*diff(u(x, y), x)
++ a[5]*diff(u(x, y), y) + a[6]*u(x, y) + a[7] = 0;
+eq := lhs(equ);
+with(linalg):
+A := matrix(2, 2, [coeff(eq, diff(u(x, y), x, x)),
+1/2*coeff(eq, diff(u(x, y), x, y)),
+1/2*coeff(eq, diff(u(x, y), x, y)),
+coeff(eq, diff(u(x, y), y, y))]);
+Delta := simplify(det(A)); 
+eqh := A[1,1]*zˆ2 - 2*A[1,2]*z + A[2,2] = 0;
+res1 := {solve(eqh,z)};
+res2 := {seq(dsolve(diff(y(x), x) = res1[i], y(x)),
+i = 1..nops(res1))};
+res3 := {seq(solve(res2[i], _C1), i=1..nops(res2))};
+subs(y(x) = y, res3);
+
+itr := {eta=coeff(%[1],I), xi= %[1] - coeff(%[1], I)*I};	// if delta > 0
+itr := {eta= x, xi= %[1]};					// if delta = 0
+itr := {eta= %[1], xi= %[2]};					// if delta < 0
+
+tr := solve(itr, {x,y});
+PDEtools[dchange](tr,eq,itr,[xi,eta],simplify)=0;
